@@ -1,70 +1,90 @@
 import streamlit as st
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, ListItem
-from reportlab.lib.styles import getSampleStyleSheet
-import io
 
-def generate_pdf(location):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    styles = getSampleStyleSheet()
-    story = []
+# -----------------------
+# Simple Business Analyzer
+# -----------------------
 
-    # Title
-    story.append(Paragraph(f"{location} Business Location Analysis Report", styles['Title']))
-    story.append(Spacer(1, 20))
+st.set_page_config(page_title="Franchise Location Analyzer", layout="wide")
 
-    # Sections
-    story.append(Paragraph("📍 Best Location", styles['Heading2']))
-    story.append(Paragraph(f"{location} – recommended commercial hub with good foot traffic.", styles['Normal']))
-    story.append(Spacer(1, 12))
+st.title("🏬 Franchise Location Analyzer")
+st.write("Enter a city/location to analyze its potential for setting up a new franchise.")
 
-    story.append(Paragraph("💰 Setup Budget", styles['Heading2']))
-    story.append(Paragraph("Estimated ₹35–45 lakhs for mid-sized setup.", styles['Normal']))
-    story.append(Spacer(1, 12))
+# User input
+location = st.text_input("📍 Enter Location (e.g., Bangalore, Hyderabad, Chennai):")
 
-    story.append(Paragraph("⚖️ Legal & Regulatory Guidance", styles['Heading2']))
-    story.append(Paragraph("Shops & Establishments Act registration, GST, and local trade license needed.", styles['Normal']))
-    story.append(Spacer(1, 12))
+# Example database (this can later be replaced with an API call)
+location_data = {
+    "bangalore": {
+        "avg_budget": "₹15–25 lakhs (depending on area)",
+        "pros": [
+            "High IT hub population with good spending power",
+            "Strong demand for food, retail, and fitness businesses",
+            "Young working-class demographic"
+        ],
+        "challenges": [
+            "High rental costs in prime areas",
+            "Heavy traffic can affect accessibility",
+            "High competition in urban centers"
+        ],
+        "marketing": [
+            "Leverage social media & tech events",
+            "Offer student and corporate discounts",
+            "Partner with food delivery and e-commerce platforms"
+        ],
+        "legal": [
+            "Shop & Establishment Act registration",
+            "GST registration",
+            "Trade license from BBMP"
+        ]
+    },
+    "hyderabad": {
+        "avg_budget": "₹10–20 lakhs (depending on area)",
+        "pros": [
+            "Growing IT & pharma hub",
+            "Lower rentals than Bangalore",
+            "Good demand for food and educational franchises"
+        ],
+        "challenges": [
+            "Emerging competition in urban pockets",
+            "Seasonal business fluctuations"
+        ],
+        "marketing": [
+            "Focus on student & family audiences",
+            "Digital ads targeting tech employees",
+            "Local event sponsorships"
+        ],
+        "legal": [
+            "Trade license from GHMC",
+            "GST registration",
+            "Labour law compliance"
+        ]
+    }
+}
 
-    story.append(Paragraph("⚠️ Challenges & Solutions", styles['Heading2']))
-    challenges = [
-        ("High rental costs", "Negotiate lease, explore off-main-road locations"),
-        ("Competition", "Offer unique services and strong customer experience"),
-        ("Traffic/accessibility", "Prefer areas near metro stations or with parking")
-    ]
-    challenge_list = []
-    for ch, sol in challenges:
-        text = f"<b>Challenge:</b> {ch} <br/><b>Solution:</b> {sol}"
-        challenge_list.append(ListItem(Paragraph(text, styles['Normal'])))
-    story.append(ListFlowable(challenge_list, bulletType='bullet'))
-    story.append(Spacer(1, 12))
+# Display info if location found
+if location:
+    loc_key = location.lower()
+    if loc_key in location_data:
+        data = location_data[loc_key]
+        st.subheader(f"📊 Analysis for {location.title()}")
 
-    story.append(Paragraph("📢 Marketing Ideas", styles['Heading2']))
-    marketing_points = [
-        "Instagram influencer tie-ups",
-        "Targeted Google/Facebook ads",
-        "Campus activations at nearby colleges",
-        "Loyalty programs & referral offers"
-    ]
-    marketing_list = [ListItem(Paragraph(point, styles['Normal'])) for point in marketing_points]
-    story.append(ListFlowable(marketing_list, bulletType='bullet'))
+        st.metric("💰 Estimated Setup Budget", data["avg_budget"])
 
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
+        st.write("### ✅ Advantages")
+        for p in data["pros"]:
+            st.write(f"- {p}")
 
-# --- Streamlit UI ---
-st.title("📊 Business Location Analyzer")
-st.write("Enter a city and generate a business analysis PDF report.")
+        st.write("### ⚠️ Challenges")
+        for c in data["challenges"]:
+            st.write(f"- {c}")
 
-location = st.text_input("Enter Location:", "Bangalore")
+        st.write("### 📢 Marketing Suggestions")
+        for m in data["marketing"]:
+            st.write(f"- {m}")
 
-if st.button("Generate PDF"):
-    pdf_data = generate_pdf(location)
-    st.download_button(
-        label="📥 Download Report",
-        data=pdf_data,
-        file_name=f"{location}_Business_Analysis.pdf",
-        mime="application/pdf"
-    )
+        st.write("### 📜 Legal & Regulatory Notes")
+        for l in data["legal"]:
+            st.write(f"- {l}")
+
+    else:
+        st.warning("❌ Sorry, location not found in database. Please try Bangalore or Hyderabad for now.")
